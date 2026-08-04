@@ -19,7 +19,24 @@
 <body>
   <div id="error-message"></div>
 
-  <main id="break-overlay"></main>
+  <div class="overlay-frame">
+    <header class="overlay-header">
+      <div class="overlay-title">
+        AVAILABLE <span>SPOTS</span>
+      </div>
+
+      <div class="overlay-subtitle">
+        AVAILABLE POKÉMON — ROTATING EVERY 20 SECONDS
+      </div>
+    </header>
+
+    <main id="break-overlay"></main>
+
+    <footer class="overlay-footer">
+      <span id="spots-remaining">0</span>
+      SPOTS REMAINING
+    </footer>
+  </div>
 
   <script src="script.js"></script>
 </body>
