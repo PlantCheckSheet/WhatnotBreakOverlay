@@ -4,9 +4,11 @@ const APPS_SCRIPT_URL =
 const IMAGE_BASE_URL =
   'https://plantchecksheet.github.io/WhatnotBreakOverlay/images/pokemon/';
 
-const DATA_REFRESH_INTERVAL = 2000;
+const DATA_REFRESH_INTERVAL = 5000;
 const SLIDE_DURATION = 20000;
 const SPOTS_PER_SLIDE = 6;
+const REQUEST_TIMEOUT = 12000;
+const FAILURES_BEFORE_ERROR = 3;
 
 let availableSpots = [];
 let currentPage = 0;
@@ -14,17 +16,24 @@ let slideTimer = null;
 let requestNumber = 0;
 let lastDataSignature = '';
 
+let requestInProgress = false;
+let failedRequests = 0;
+let activeRequestId = null;
+let activeRequestTimeout = null;
+
 function requestBreakData() {
-  requestNumber += 1;
-
-  const oldScript = document.getElementById('break-data-request');
-
-  if (oldScript) {
-    oldScript.remove();
+  if (requestInProgress) {
+    return;
   }
 
+  requestInProgress = true;
+  requestNumber += 1;
+
   const script = document.createElement('script');
-  script.id = 'break-data-request';
+  const scriptId = 'break-data-request-' + requestNumber;
+
+  activeRequestId = scriptId;
+  script.id = scriptId;
 
   const separator = APPS_SCRIPT_URL.includes('?') ? '&' : '?';
 
@@ -38,22 +47,59 @@ function requestBreakData() {
     Date.now();
 
   script.onerror = function () {
-    showError(
-      'Could not connect to Google Sheets. Check the Apps Script URL and deployment permissions.'
-    );
+    finishCurrentRequest();
+
+    failedRequests += 1;
+
+    if (failedRequests >= FAILURES_BEFORE_ERROR) {
+      showError(
+        'Google Sheets connection temporarily unavailable. Retrying automatically…'
+      );
+    }
   };
 
   document.body.appendChild(script);
+
+  activeRequestTimeout = setTimeout(function () {
+    const activeScript = document.getElementById(scriptId);
+
+    if (activeScript) {
+      activeScript.remove();
+    }
+
+    if (activeRequestId === scriptId) {
+      requestInProgress = false;
+      activeRequestId = null;
+      activeRequestTimeout = null;
+
+      failedRequests += 1;
+
+      if (failedRequests >= FAILURES_BEFORE_ERROR) {
+        showError(
+          'Google Sheets connection temporarily unavailable. Retrying automatically…'
+        );
+      }
+    }
+  }, REQUEST_TIMEOUT);
 }
 
 function receiveBreakData(response) {
+  finishCurrentRequest();
+
   if (!response || response.success !== true) {
-    showError(
-      response?.error || 'Google Sheets returned an unknown error.'
-    );
+    failedRequests += 1;
+
+    if (failedRequests >= FAILURES_BEFORE_ERROR) {
+      showError(
+        response?.error ||
+          'Google Sheets connection temporarily unavailable. Retrying automatically…'
+      );
+    }
+
     return;
   }
 
+  failedRequests = 0;
   hideError();
 
   const newAvailableSpots = (response.spots || []).filter(function (spot) {
@@ -86,6 +132,25 @@ function receiveBreakData(response) {
 
     showCurrentPage(false);
   }
+}
+
+function finishCurrentRequest() {
+  if (activeRequestTimeout) {
+    clearTimeout(activeRequestTimeout);
+    activeRequestTimeout = null;
+  }
+
+  if (activeRequestId) {
+    const script = document.getElementById(activeRequestId);
+
+    if (script) {
+      script.remove();
+    }
+
+    activeRequestId = null;
+  }
+
+  requestInProgress = false;
 }
 
 function getPageCount() {
@@ -157,12 +222,17 @@ function createSpotElement(spot) {
   image.onerror = function () {
     image.style.display = 'none';
 
-    const missing = document.createElement('div');
-    missing.className = 'missing-image';
-    missing.textContent =
-      spot.pokemon + ': image not found';
+    const existingMissing =
+      element.querySelector('.missing-image');
 
-    element.prepend(missing);
+    if (!existingMissing) {
+      const missing = document.createElement('div');
+      missing.className = 'missing-image';
+      missing.textContent =
+        spot.pokemon + ': image not found';
+
+      element.prepend(missing);
+    }
   };
 
   const name = document.createElement('div');
@@ -194,9 +264,8 @@ function showError(message) {
 }
 
 function hideError() {
-  document.getElementById(
-    'error-message'
-  ).style.display = 'none';
+  const errorBox = document.getElementById('error-message');
+  errorBox.style.display = 'none';
 }
 
 requestBreakData();
