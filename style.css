@@ -5,7 +5,7 @@
 html,
 body {
   width: 100%;
-  min-height: 100%;
+  height: 100%;
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -15,84 +15,61 @@ body {
 
 #break-overlay {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 14px;
   width: 100%;
-  padding: 12px;
+  height: 100%;
+  padding: 14px;
+  opacity: 1;
+  transition: opacity 0.7s ease;
+}
+
+#break-overlay.fade-out {
+  opacity: 0;
+}
+
+#break-overlay.fade-in {
+  animation: fade-in 0.7s ease;
 }
 
 .pokemon-spot {
   position: relative;
   min-width: 0;
+  min-height: 0;
   overflow: hidden;
   border-radius: 14px;
   background: rgba(0, 0, 0, 0.15);
-  transition:
-    transform 0.3s ease,
-    opacity 0.3s ease;
 }
 
 .pokemon-image {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
   object-fit: contain;
-  transition:
-    filter 0.4s ease,
-    opacity 0.4s ease,
-    transform 0.4s ease;
 }
 
 .pokemon-name {
   position: absolute;
-  right: 6px;
-  bottom: 6px;
-  left: 6px;
-  padding: 5px 6px;
+  right: 7px;
+  bottom: 7px;
+  left: 7px;
+  padding: 6px;
   border-radius: 7px;
-  background: rgba(0, 0, 0, 0.72);
+  background: rgba(0, 0, 0, 0.78);
   color: white;
-  font-size: clamp(10px, 1.4vw, 18px);
-  font-weight: 800;
-  text-align: center;
-  text-shadow: 1px 1px 3px black;
-}
-
-.spot-taken .pokemon-image {
-  filter: grayscale(85%) brightness(42%);
-  opacity: 0.78;
-}
-
-.spot-taken-banner {
-  display: none;
-  position: absolute;
-  z-index: 3;
-  top: 50%;
-  left: -10%;
-  width: 120%;
-  padding: 10px 5px;
-  transform: translateY(-50%) rotate(-8deg);
-  border-top: 3px solid white;
-  border-bottom: 3px solid white;
-  background: rgba(190, 0, 0, 0.95);
-  color: white;
-  font-size: clamp(12px, 2vw, 28px);
+  font-size: clamp(12px, 1.5vw, 22px);
   font-weight: 900;
-  letter-spacing: 1px;
   text-align: center;
   text-shadow: 2px 2px 4px black;
-}
-
-.spot-taken .spot-taken-banner {
-  display: block;
-  animation: banner-in 0.45s ease;
 }
 
 .missing-image {
   display: flex;
   align-items: center;
   justify-content: center;
-  aspect-ratio: 3 / 4;
+  width: 100%;
+  height: 100%;
   padding: 12px;
   background: rgba(25, 25, 25, 0.9);
   color: white;
@@ -100,32 +77,39 @@ body {
   text-align: center;
 }
 
+.all-spots-taken {
+  display: flex;
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: clamp(28px, 6vw, 80px);
+  font-weight: 900;
+  text-align: center;
+  text-shadow: 3px 3px 8px black;
+}
+
 #error-message {
   display: none;
-  margin: 20px;
+  position: absolute;
+  z-index: 100;
+  top: 10px;
+  right: 10px;
+  left: 10px;
   padding: 15px;
   border-radius: 10px;
-  background: rgba(150, 0, 0, 0.9);
+  background: rgba(150, 0, 0, 0.95);
   color: white;
   font-weight: bold;
 }
 
-@keyframes banner-in {
+@keyframes fade-in {
   from {
     opacity: 0;
-    transform: translateY(-50%) rotate(-8deg) scale(1.45);
   }
 
   to {
     opacity: 1;
-    transform: translateY(-50%) rotate(-8deg) scale(1);
-  }
-}
-
-@media (max-width: 900px) {
-  #break-overlay {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
-    padding: 8px;
   }
 }
