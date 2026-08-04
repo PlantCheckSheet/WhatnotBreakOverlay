@@ -4,10 +4,15 @@ const APPS_SCRIPT_URL =
 const IMAGE_BASE_URL =
   'https://plantchecksheet.github.io/WhatnotBreakOverlay/images/pokemon/';
 
-const REFRESH_INTERVAL = 2000;
+const DATA_REFRESH_INTERVAL = 2000;
+const SLIDE_DURATION = 20000;
+const SPOTS_PER_SLIDE = 6;
 
-let previousStatuses = {};
+let availableSpots = [];
+let currentPage = 0;
+let slideTimer = null;
 let requestNumber = 0;
+let lastDataSignature = '';
 
 function requestBreakData() {
   requestNumber += 1;
@@ -50,133 +55,140 @@ function receiveBreakData(response) {
   }
 
   hideError();
-  renderBreakSpots(response.spots || []);
-}
 
-function renderBreakSpots(spots) {
-  const overlay = document.getElementById('break-overlay');
+  const newAvailableSpots = (response.spots || []).filter(function (spot) {
+    const status = String(spot.status || '')
+      .trim()
+      .toLowerCase();
 
-  const activePokemon = spots.map(spot => spot.pokemon);
-
-  Array.from(overlay.children).forEach(element => {
-    if (!activePokemon.includes(element.dataset.pokemon)) {
-      element.remove();
-    }
+    return status === 'available';
   });
 
-  spots.forEach(spot => {
-    let element = Array.from(overlay.children).find(
-      item => item.dataset.pokemon === spot.pokemon
-    );
+  const newSignature = JSON.stringify(
+    newAvailableSpots.map(function (spot) {
+      return [
+        spot.pokemon,
+        spot.status,
+        spot.imageName
+      ];
+    })
+  );
 
-    if (!element) {
-      element = createSpotElement(spot);
-      overlay.appendChild(element);
+  if (newSignature !== lastDataSignature) {
+    availableSpots = newAvailableSpots;
+    lastDataSignature = newSignature;
+
+    const pageCount = getPageCount();
+
+    if (currentPage >= pageCount) {
+      currentPage = 0;
     }
 
-    updateSpotElement(element, spot);
+    showCurrentPage(false);
+  }
+}
+
+function getPageCount() {
+  return Math.max(
+    1,
+    Math.ceil(availableSpots.length / SPOTS_PER_SLIDE)
+  );
+}
+
+function showCurrentPage(animate) {
+  const overlay = document.getElementById('break-overlay');
+
+  if (animate) {
+    overlay.classList.add('fade-out');
+
+    setTimeout(function () {
+      renderCurrentPage();
+      overlay.classList.remove('fade-out');
+      overlay.classList.add('fade-in');
+
+      setTimeout(function () {
+        overlay.classList.remove('fade-in');
+      }, 700);
+    }, 700);
+  } else {
+    renderCurrentPage();
+  }
+}
+
+function renderCurrentPage() {
+  const overlay = document.getElementById('break-overlay');
+  overlay.innerHTML = '';
+
+  if (availableSpots.length === 0) {
+    overlay.innerHTML = `
+      <div class="all-spots-taken">
+        ALL SPOTS TAKEN
+      </div>
+    `;
+    return;
+  }
+
+  const startIndex = currentPage * SPOTS_PER_SLIDE;
+  const endIndex = startIndex + SPOTS_PER_SLIDE;
+
+  const pageSpots = availableSpots.slice(
+    startIndex,
+    endIndex
+  );
+
+  pageSpots.forEach(function (spot) {
+    overlay.appendChild(createSpotElement(spot));
   });
 }
 
 function createSpotElement(spot) {
   const element = document.createElement('div');
   element.className = 'pokemon-spot';
-  element.dataset.pokemon = spot.pokemon;
 
   const image = document.createElement('img');
   image.className = 'pokemon-image';
   image.alt = spot.pokemon;
 
+  const imageUrl =
+    IMAGE_BASE_URL + encodeURIComponent(spot.imageName);
+
+  image.src = imageUrl;
+
   image.onerror = function () {
     image.style.display = 'none';
 
-    if (!element.querySelector('.missing-image')) {
-      const message = document.createElement('div');
-      message.className = 'missing-image';
-      message.textContent =
-        `${spot.pokemon}: image not found`;
+    const missing = document.createElement('div');
+    missing.className = 'missing-image';
+    missing.textContent =
+      spot.pokemon + ': image not found';
 
-      element.prepend(message);
-    }
+    element.prepend(missing);
   };
 
   const name = document.createElement('div');
   name.className = 'pokemon-name';
   name.textContent = spot.pokemon;
 
-  const banner = document.createElement('div');
-  banner.className = 'spot-taken-banner';
-  banner.textContent = 'SPOT TAKEN';
-
   element.appendChild(image);
   element.appendChild(name);
-  element.appendChild(banner);
 
   return element;
 }
 
-function updateSpotElement(element, spot) {
-  const image = element.querySelector('.pokemon-image');
-  const name = element.querySelector('.pokemon-name');
+function advanceSlide() {
+  const pageCount = getPageCount();
 
-  const imageUrl =
-    IMAGE_BASE_URL + encodeURIComponent(spot.imageName);
-
-  const currentImageUrl =
-    image.getAttribute('data-image-url');
-
-  if (currentImageUrl !== imageUrl) {
-    image.setAttribute('data-image-url', imageUrl);
-    image.src = imageUrl;
-    image.style.display = 'block';
-
-    const missingImage =
-      element.querySelector('.missing-image');
-
-    if (missingImage) {
-      missingImage.remove();
-    }
+  if (pageCount <= 1) {
+    currentPage = 0;
+    return;
   }
 
-  name.textContent = spot.pokemon;
-
-  const normalisedStatus =
-    String(spot.status || '').trim().toLowerCase();
-
-  const isTaken =
-    normalisedStatus === 'spot taken' ||
-    normalisedStatus === 'sold' ||
-    normalisedStatus === 'taken';
-
-  const previousStatus =
-    previousStatuses[spot.pokemon];
-
-  element.classList.toggle('spot-taken', isTaken);
-
-  if (
-    previousStatus !== undefined &&
-    previousStatus !== normalisedStatus &&
-    isTaken
-  ) {
-    restartBannerAnimation(element);
-  }
-
-  previousStatuses[spot.pokemon] = normalisedStatus;
-}
-
-function restartBannerAnimation(element) {
-  const banner =
-    element.querySelector('.spot-taken-banner');
-
-  banner.style.animation = 'none';
-  void banner.offsetWidth;
-  banner.style.animation = '';
+  currentPage = (currentPage + 1) % pageCount;
+  showCurrentPage(true);
 }
 
 function showError(message) {
-  const errorBox =
-    document.getElementById('error-message');
-
+  const errorBox = document.getElementById('error-message');
   errorBox.textContent = message;
   errorBox.style.display = 'block';
 }
@@ -191,5 +203,10 @@ requestBreakData();
 
 setInterval(
   requestBreakData,
-  REFRESH_INTERVAL
+  DATA_REFRESH_INTERVAL
+);
+
+slideTimer = setInterval(
+  advanceSlide,
+  SLIDE_DURATION
 );
