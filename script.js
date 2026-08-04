@@ -155,13 +155,7 @@ function finishCurrentRequest() {
   requestInProgress = false;
 }
 
-function updateSpotsRemaining() {
-  const counter = document.getElementById('spots-remaining');
 
-  if (counter) {
-    counter.textContent = availableSpots.length;
-  }
-}
 
 function getPageCount() {
   return Math.max(
