@@ -1,5 +1,5 @@
 const APPS_SCRIPT_URL =
-  'PASTE-YOUR-GOOGLE-APPS-SCRIPT-EXEC-URL-HERE';
+  'https://script.google.com/macros/s/AKfycbx48HlsMtnLRuJTLSp4irZUKKiMAb9FDKakSp_azx1zBj8-t_V_dufL8TQH74Ch40R8fw/exec';
 
 const IMAGE_BASE_URL =
   'https://plantchecksheet.github.io/WhatnotBreakOverlay/images/pokemon/';
