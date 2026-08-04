@@ -124,6 +124,8 @@ function receiveBreakData(response) {
     availableSpots = newAvailableSpots;
     lastDataSignature = newSignature;
 
+    updateSpotsRemaining();
+
     const pageCount = getPageCount();
 
     if (currentPage >= pageCount) {
@@ -153,6 +155,14 @@ function finishCurrentRequest() {
   requestInProgress = false;
 }
 
+function updateSpotsRemaining() {
+  const counter = document.getElementById('spots-remaining');
+
+  if (counter) {
+    counter.textContent = availableSpots.length;
+  }
+}
+
 function getPageCount() {
   return Math.max(
     1,
@@ -163,11 +173,16 @@ function getPageCount() {
 function showCurrentPage(animate) {
   const overlay = document.getElementById('break-overlay');
 
+  if (!overlay) {
+    return;
+  }
+
   if (animate) {
     overlay.classList.add('fade-out');
 
     setTimeout(function () {
       renderCurrentPage();
+
       overlay.classList.remove('fade-out');
       overlay.classList.add('fade-in');
 
@@ -182,6 +197,11 @@ function showCurrentPage(animate) {
 
 function renderCurrentPage() {
   const overlay = document.getElementById('break-overlay');
+
+  if (!overlay) {
+    return;
+  }
+
   overlay.innerHTML = '';
 
   if (availableSpots.length === 0) {
@@ -190,6 +210,7 @@ function renderCurrentPage() {
         ALL SPOTS TAKEN
       </div>
     `;
+
     return;
   }
 
@@ -210,12 +231,35 @@ function createSpotElement(spot) {
   const element = document.createElement('div');
   element.className = 'pokemon-spot';
 
+  const pokemonName = String(
+    spot.pokemon || ''
+  ).trim();
+
+  const normalisedName = pokemonName.toLowerCase();
+
+  const isMegaGengar =
+    normalisedName.includes('mega gengar');
+
+  if (isMegaGengar) {
+    element.classList.add('chase-card');
+
+    const badge = document.createElement('div');
+    badge.className = 'chase-badge';
+    badge.textContent = 'CHASE CARD';
+
+    element.appendChild(badge);
+  }
+
   const image = document.createElement('img');
   image.className = 'pokemon-image';
-  image.alt = spot.pokemon;
+  image.alt = pokemonName;
+
+  const imageName = String(
+    spot.imageName || ''
+  ).trim();
 
   const imageUrl =
-    IMAGE_BASE_URL + encodeURIComponent(spot.imageName);
+    IMAGE_BASE_URL + encodeURIComponent(imageName);
 
   image.src = imageUrl;
 
@@ -229,7 +273,7 @@ function createSpotElement(spot) {
       const missing = document.createElement('div');
       missing.className = 'missing-image';
       missing.textContent =
-        spot.pokemon + ': image not found';
+        pokemonName + ': image not found';
 
       element.prepend(missing);
     }
@@ -237,7 +281,7 @@ function createSpotElement(spot) {
 
   const name = document.createElement('div');
   name.className = 'pokemon-name';
-  name.textContent = spot.pokemon;
+  name.textContent = pokemonName;
 
   element.appendChild(image);
   element.appendChild(name);
@@ -259,12 +303,22 @@ function advanceSlide() {
 
 function showError(message) {
   const errorBox = document.getElementById('error-message');
+
+  if (!errorBox) {
+    return;
+  }
+
   errorBox.textContent = message;
   errorBox.style.display = 'block';
 }
 
 function hideError() {
   const errorBox = document.getElementById('error-message');
+
+  if (!errorBox) {
+    return;
+  }
+
   errorBox.style.display = 'none';
 }
 
