@@ -124,7 +124,7 @@ function receiveBreakData(response) {
     availableSpots = newAvailableSpots;
     lastDataSignature = newSignature;
 
-    updateSpotsRemaining();
+    
 
     const pageCount = getPageCount();
 
