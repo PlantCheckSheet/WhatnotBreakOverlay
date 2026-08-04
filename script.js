@@ -232,7 +232,7 @@ function createSpotElement(spot) {
   const normalisedName = pokemonName.toLowerCase();
 
   const isMegaGengar =
-    normalisedName.includes('mega gengar');
+  pokemonName.trim() === '⭐⭐ Mega Gengar (SIR) ⭐⭐';
 
   if (isMegaGengar) {
     element.classList.add('chase-card');
