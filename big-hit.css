@@ -1,0 +1,333 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  opacity: 0;
+  animation:
+    show-overlay 0.15s forwards,
+    hide-overlay 0.8s 6.2s forwards;
+}
+
+#big-hit-overlay {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: 8px solid #ff00dc;
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(108, 0, 160, 0.88),
+      rgba(15, 0, 35, 0.96) 62%,
+      rgba(0, 0, 0, 0.98)
+    );
+  box-shadow:
+    inset 0 0 80px #8d00ff,
+    inset 0 0 150px rgba(255, 0, 220, 0.55);
+  animation:
+    screen-entry 0.65s ease-out,
+    screen-shake 0.12s 0.7s 15,
+    border-pulse 0.45s infinite alternate;
+}
+
+.hit-content {
+  position: relative;
+  z-index: 20;
+  width: 92%;
+  text-align: center;
+  animation:
+    content-entry 0.8s cubic-bezier(0.15, 1.4, 0.35, 1);
+}
+
+.alert-line {
+  color: white;
+  font-size: clamp(30px, 5vw, 88px);
+  font-weight: 1000;
+  font-style: italic;
+  letter-spacing: 3px;
+  text-shadow:
+    5px 5px 0 black,
+    0 0 15px white,
+    0 0 35px #ff00dc;
+  animation: alert-flash 0.45s infinite alternate;
+}
+
+.main-title {
+  margin-top: 18px;
+  color: white;
+  font-size: clamp(55px, 10vw, 180px);
+  font-weight: 1000;
+  font-style: italic;
+  line-height: 0.88;
+  letter-spacing: 2px;
+  text-shadow:
+    7px 7px 0 black,
+    0 0 20px white,
+    0 0 50px #b000ff;
+}
+
+.main-title span {
+  display: block;
+  color: #ffe600;
+  text-shadow:
+    7px 7px 0 black,
+    0 0 20px #ffe600,
+    0 0 50px #ff7b00;
+  animation: pulled-pulse 0.55s infinite alternate;
+}
+
+.pokemon-title {
+  display: inline-block;
+  margin-top: 28px;
+  padding: 12px 32px;
+  border: 4px solid white;
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 0, 220, 0.95),
+      rgba(90, 0, 180, 0.95)
+    );
+  color: white;
+  font-size: clamp(20px, 3.2vw, 52px);
+  font-weight: 1000;
+  font-style: italic;
+  text-shadow: 3px 3px 4px black;
+  box-shadow:
+    0 0 18px #ff00dc,
+    0 0 40px #8d00ff;
+}
+
+.brand-name {
+  margin-top: 28px;
+  color: white;
+  font-size: clamp(22px, 3vw, 48px);
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: 3px;
+  text-shadow:
+    3px 3px 0 black,
+    0 0 16px white;
+}
+
+.flash-layer {
+  position: absolute;
+  z-index: 50;
+  inset: 0;
+  pointer-events: none;
+  background: white;
+  opacity: 0;
+  animation:
+    full-flash 0.18s 0.1s,
+    full-flash 0.18s 0.55s,
+    full-flash 0.18s 1.1s;
+}
+
+.lightning {
+  position: absolute;
+  z-index: 10;
+  top: -20%;
+  width: 18px;
+  height: 145%;
+  opacity: 0;
+  background: white;
+  box-shadow:
+    0 0 15px white,
+    0 0 35px #ce7cff,
+    0 0 65px #8d00ff;
+  clip-path: polygon(
+    48% 0,
+    100% 0,
+    62% 41%,
+    92% 41%,
+    20% 100%,
+    41% 54%,
+    8% 54%
+  );
+  animation: lightning-flash 1.15s infinite;
+}
+
+.lightning-one {
+  left: 12%;
+  transform: rotate(9deg);
+}
+
+.lightning-two {
+  right: 12%;
+  transform: rotate(-9deg);
+  animation-delay: 0.35s;
+}
+
+.lightning-three {
+  left: 49%;
+  transform: rotate(3deg) scale(0.65);
+  animation-delay: 0.7s;
+}
+
+.confetti-piece {
+  position: absolute;
+  z-index: 30;
+  top: -30px;
+  width: 14px;
+  height: 24px;
+  border-radius: 3px;
+  animation-name: confetti-fall;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes show-overlay {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hide-overlay {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes screen-entry {
+  from {
+    transform: scale(1.35);
+    filter: brightness(3);
+  }
+
+  to {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes content-entry {
+  from {
+    opacity: 0;
+    transform: scale(0.15) rotate(-8deg);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+@keyframes screen-shake {
+  0% {
+    transform: translate(0, 0);
+  }
+
+  25% {
+    transform: translate(-8px, 5px);
+  }
+
+  50% {
+    transform: translate(8px, -5px);
+  }
+
+  75% {
+    transform: translate(-5px, -8px);
+  }
+
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes border-pulse {
+  from {
+    border-color: #ff00dc;
+    box-shadow:
+      inset 0 0 80px #8d00ff,
+      inset 0 0 150px rgba(255, 0, 220, 0.55);
+  }
+
+  to {
+    border-color: #ffe600;
+    box-shadow:
+      inset 0 0 100px #ff00dc,
+      inset 0 0 180px rgba(255, 230, 0, 0.42);
+  }
+}
+
+@keyframes alert-flash {
+  from {
+    opacity: 0.72;
+    transform: scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes pulled-pulse {
+  from {
+    transform: scale(0.97);
+  }
+
+  to {
+    transform: scale(1.06);
+  }
+}
+
+@keyframes full-flash {
+  0% {
+    opacity: 0;
+  }
+
+  40% {
+    opacity: 0.95;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes lightning-flash {
+  0%,
+  76%,
+  100% {
+    opacity: 0;
+  }
+
+  78%,
+  82% {
+    opacity: 1;
+  }
+
+  80%,
+  84% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes confetti-fall {
+  from {
+    transform:
+      translateY(-30px)
+      rotate(0deg);
+  }
+
+  to {
+    transform:
+      translateY(115vh)
+      rotate(900deg);
+  }
+}
